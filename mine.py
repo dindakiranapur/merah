@@ -1,51 +1,51 @@
-import os
 import subprocess
 import modal
 
-# 1. Menyiapkan Image kontainer Linux dengan dependensi CUDA dan SRBMiner
+# Menyiapkan Image kontainer Linux dengan dependensi CUDA dan WildRig-Multi
 quantus_image = (
     modal.Image.debian_slim(python_version="3.10")
-    .apt_install("wget", "tar", "libssl-dev", "ocl-icd-opencl-dev")
+    .apt_install("wget", "tar", "libssl-dev", "ocl-icd-opencl-dev", "ca-certificates")
     .run_commands(
-        "wget https://github.com/doktor83/SRBMiner-Multi/releases/download/1.2.9/SRBMiner-Multi-1-2-9-Linux.tar.gz",
-        "tar -xvf SRBMiner-Multi-1-2-9-Linux.tar.gz",
-        "mv SRBMiner-Multi-1-2-9 srbminer"
+        # Mengunduh wildrig-multi yang mendukung algoritma quantus
+        "wget https://github.com/andru-sho/wildrig-multi/releases/download/0.40.1/wildrig-multi-linux-0.40.1.tar.xz",
+        "tar -xvf wildrig-multi-linux-0.40.1.tar.xz",
+        "mv wildrig-multi wildrig"
     )
 )
 
-app = modal.App("quantus-mining-app")
+app = modal.App("quantus-kryptex-mining")
 
-# 2. Mengalokasikan GPU H100 (GPU tertinggi di Modal)
+# Menggunakan GPU tertinggi di Modal.com (NVIDIA H100)
 @app.function(
     image=quantus_image,
-    gpu="H100",  
-    timeout=86400  # Durasi maksimum jalan (24 jam)
+    gpu="H100",  # Bisa diganti ke "H200" atau "A100" jika diperlukan kuota
+    timeout=86400  # Timeout maksimum 24 jam per session
 )
 def run_miner():
-    # Alamat Dompet Quantus Anda yang sudah dimasukkan
+    # Alamat dompet Quantus Anda
     WALLET_ADDRESS = "qzodqEtdBhugS8bVkDjsxcUToZ44ibTsFaeA1985QjTx4XfGe"
-    WORKER_NAME = "modal_h100_worker"
+    WORKER_NAME = "modal_h100_kryptex"
     
-    # Server Mining Pool (2Miners Asia)
-    POOL = "asia-qtc.2miners.com:3636"
+    # Stratum Server Kryptex Singapura (SG)
+    POOL = "qtc-sg.kryptex.network:7049"
     
     # Perintah eksekusi penambangan
     cmd = [
-        "./srbminer/SRBMiner-MULTI",
-        "--algorithm", "quantus",
-        "--pool", POOL,
-        "--wallet", f"{WALLET_ADDRESS}.{WORKER_NAME}",
-        "--password", "x",
-        "--disable-cpu"
+        "./wildrig",
+        "--algo", "quantus",
+        "--url", f"stratum+tcp://{POOL}",
+        "--user", f"{WALLET_ADDRESS}.{WORKER_NAME}",
+        "--pass", "x"
     ]
     
-    print("=" * 50)
-    print("Memulai Mining Quantus di Modal.com (GPU H100)...")
+    print("=" * 60)
+    print("Memulai Mining Quantus (QTC) di Kryptex SG via Modal.com")
+    print(f"GPU    : NVIDIA H100")
     print(f"Pool   : {POOL}")
     print(f"Wallet : {WALLET_ADDRESS}")
-    print("=" * 50)
+    print("=" * 60)
 
-    # Menjalankan proses miner & menampilkan log real-time ke terminal
+    # Menjalankan proses miner dan menampilkan log real-time
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True)
     
     for line in process.stdout:
