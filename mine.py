@@ -6,9 +6,9 @@ quantus_image = (
     modal.Image.debian_slim(python_version="3.10")
     .apt_install("wget", "tar", "libssl-dev", "ocl-icd-opencl-dev", "ca-certificates")
     .run_commands(
-        "wget https://github.com/andru-sho/wildrig-multi/releases/download/0.40.1/wildrig-multi-linux-0.40.1.tar.xz",
-        "tar -xvf wildrig-multi-linux-0.40.1.tar.xz",
-        "mv wildrig-multi wildrig"
+        "wget https://github.com/doktor83/SRBMiner-Multi/releases/download/3.8.3/SRBMiner-Multi-3-8-3-Linux.tar.gz",
+        "tar -xvf SRBMiner-Multi-3-8-3-Linux.tar.gz",
+        "mv SRBMiner-Multi-3-8-3 srbminer"
     )
 )
 
@@ -25,11 +25,12 @@ def run_miner():
     POOL = "qtc-sg.kryptex.network:7049"
     
     cmd = [
-        "./wildrig",
-        "--algo", "quantus",
-        "--url", f"stratum+tcp://{POOL}",
-        "--user", f"{WALLET_ADDRESS}.{WORKER_NAME}",
-        "--pass", "x"
+        "./srbminer/SRBMiner-MULTI",
+        "--algorithm", "quantus",
+        "--pool", POOL,
+        "--wallet", f"{WALLET_ADDRESS}.{WORKER_NAME}",
+        "--password", "x",
+        "--disable-cpu"
     ]
     
     print("=" * 60)
