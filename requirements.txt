@@ -1,0 +1,2 @@
+# Kosongkan file ini. Tidak ada package pip yang diperlukan
+# karena semua dependensi diinstal langsung di dalam kontainer Modal (Debian/Ubuntu & CUDA).
